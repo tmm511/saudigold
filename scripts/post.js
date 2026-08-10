@@ -11,7 +11,7 @@
  * send a new message instead of editing.
  */
 import 'dotenv/config';
-import { buildEmbeds } from '../src/embeds.js';
+import { buildComponents, buildEmbeds } from '../src/embeds.js';
 import { fetchAll } from '../src/prices.js';
 
 const API = 'https://discord.com/api/v10';
@@ -58,7 +58,9 @@ if (results.every((r) => !r.ok)) {
   throw new Error('Every price source failed — not posting.');
 }
 
-const payload = { embeds: buildEmbeds(results).map((e) => e.toJSON()) };
+// components is sent explicitly so an edit clears anything left on the message
+// by a previous version; omitting the field would preserve it.
+const payload = { embeds: buildEmbeds(results).map((e) => e.toJSON()), components: buildComponents() };
 
 let target = null;
 if (!alwaysPost) {

@@ -10,7 +10,7 @@ import {
   SlashCommandBuilder,
 } from 'discord.js';
 import { config } from './config.js';
-import { buildComponents, buildEmbeds, REFRESH_BUTTON_ID } from './embeds.js';
+import { buildComponents, buildEmbeds } from './embeds.js';
 import { fetchAll, priceSignature } from './prices.js';
 import { readState, writeState } from './state.js';
 
@@ -163,12 +163,6 @@ client.on(Events.InteractionCreate, async (interaction) => {
     if (interaction.isChatInputCommand() && interaction.commandName === 'gold') {
       await interaction.deferReply();
       await interaction.editReply(await buildPayload());
-      return;
-    }
-
-    if (interaction.isButton() && interaction.customId === REFRESH_BUTTON_ID) {
-      await interaction.deferUpdate();
-      await interaction.message.edit(await buildPayload());
     }
   } catch (error) {
     console.error('Interaction failed:', error);

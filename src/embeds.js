@@ -1,4 +1,4 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } from 'discord.js';
+import { EmbedBuilder } from 'discord.js';
 import { formatSar } from './numbers.js';
 
 const KARAT_ORDER = ['24', '22', '21', '18'];
@@ -73,16 +73,18 @@ export function buildEmbeds(results) {
   return results.map(buildSourceEmbed);
 }
 
-export const REFRESH_BUTTON_ID = 'gold:refresh';
-
+/**
+ * The message carries no buttons, deliberately.
+ *
+ * A button only works while a process is connected and listening for the
+ * click. The scheduled poster exits seconds after it runs, so a button on its
+ * message is dead — clicking it just reports a failed interaction. The message
+ * updates itself on a schedule, which is what a refresh button would have done
+ * anyway.
+ *
+ * Sending this explicitly (rather than omitting the field) matters: a PATCH
+ * that omits `components` leaves any existing ones in place.
+ */
 export function buildComponents() {
-  return [
-    new ActionRowBuilder().addComponents(
-      new ButtonBuilder()
-        .setCustomId(REFRESH_BUTTON_ID)
-        .setLabel('تحديث • Refresh')
-        .setEmoji('🔄')
-        .setStyle(ButtonStyle.Secondary),
-    ),
-  ];
+  return [];
 }
