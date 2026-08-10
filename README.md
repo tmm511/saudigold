@@ -62,6 +62,40 @@ AUTO_MODE=edit
 Both sites update roughly every minute, but they're scraped sites — a refresh
 interval under ~5 minutes is inconsiderate and gains you very little.
 
+## Running it 24/7 for free (GitHub Actions)
+
+You do not need a VPS or a PC left on. [`.github/workflows/gold-prices.yml`](.github/workflows/gold-prices.yml)
+runs [`scripts/post.js`](scripts/post.js) every 30 minutes on GitHub's runners.
+
+That script talks to Discord's REST API directly instead of opening a gateway
+connection, so it starts, posts, and exits in a few seconds. It finds the bot's
+own most recent message in the channel and edits it, which keeps one live
+message current without needing to remember a message ID between runs — the
+runner is a fresh machine every time.
+
+Setup, once:
+
+1. Push this folder to a GitHub repo.
+2. Repo → **Settings → Secrets and variables → Actions → New repository secret**,
+   add two:
+   - `DISCORD_TOKEN` — the bot token
+   - `AUTO_CHANNEL_ID` — the channel ID
+3. Repo → **Actions** tab → enable workflows → open *Gold prices* → **Run workflow**
+   to confirm the first run works.
+
+Caveats worth knowing:
+
+- Scheduled runs are queued, not precise. A `*/30` cron typically fires a few
+  minutes late when GitHub is busy.
+- GitHub disables scheduled workflows in repos with **60 days of no activity**.
+  It emails you first; clicking *Run workflow* resets the clock.
+- Public repos get unlimited Actions minutes; private repos get a monthly
+  allowance that this job uses a tiny fraction of.
+
+The trade-off: this mode posts and edits on a schedule, but there is no live
+process, so `/gold` and the refresh button do not work. For those you need the
+gateway bot (`npm start`) running somewhere persistent.
+
 ## Checking the scrapers without Discord
 
 ```bash
