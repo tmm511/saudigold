@@ -27,6 +27,10 @@ export const config = {
   prefix: process.env.PREFIX || '!',
   enablePrefixCommands: bool(process.env.ENABLE_PREFIX_COMMANDS, false),
 
+  // Embed footer. Kept free of Arabic on purpose: Discord reorders a line that
+  // mixes RTL and LTR runs, which scrambled the timestamp that follows it.
+  footerText: process.env.FOOTER_TEXT ?? '@._q // tm',
+
   // Presence shown under the bot's name in the member list.
   // Only applies while the gateway bot is running — presence lives on the
   // gateway connection, so the REST-only scheduled poster cannot set it.

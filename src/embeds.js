@@ -1,4 +1,5 @@
 import { EmbedBuilder } from 'discord.js';
+import { config } from './config.js';
 import { formatSar } from './numbers.js';
 
 const KARAT_ORDER = ['24', '22', '21', '18'];
@@ -62,8 +63,11 @@ export function buildSourceEmbed(result) {
   if (fields.length) embed.addFields(fields);
   else embed.setDescription([...parts, '⚠️ لا توجد أسعار عيارات متاحة حالياً.'].join('\n'));
 
+  // Left-to-right only. The previous footer put Arabic beside the timestamp,
+  // and Discord's bidirectional layout moved the trailing "am" and the
+  // separators to the wrong side of the line.
   const stamp = [data.date, data.time].filter(Boolean).join(' ');
-  embed.setFooter({ text: `Live Updates • تحديث مباشر${stamp ? ` | ${stamp}` : ''}` });
+  embed.setFooter({ text: `${config.footerText}${stamp ? ` • ${stamp}` : ''}` });
   embed.setTimestamp(data.fetchedAt);
 
   return embed;
