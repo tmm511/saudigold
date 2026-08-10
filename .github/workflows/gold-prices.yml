@@ -2,15 +2,19 @@ name: Gold prices
 
 on:
   schedule:
-    # Every 5 minutes — the shortest interval GitHub Actions allows. Runs are
-    # queued rather than precise, so expect a few minutes of drift when GitHub
-    # is busy.
+    # Every 15 minutes. This is a BACKUP: the always-on deployment does the
+    # live updating, and this covers the case where that host is down.
     #
-    # This frequency REQUIRES a public repository. Public repos have unlimited
-    # Actions minutes; a private one gets 2,000/month and this schedule would
-    # burn roughly 8,640, dying about a week into every month. If this repo is
-    # ever made private, drop back to hourly ('0 * * * *').
-    - cron: '*/5 * * * *'
+    # Deliberately not '*/5'. GitHub queues scheduled runs and deprioritises
+    # frequent crons when runners are busy — a */5 schedule on this repo did
+    # not fire once in the half hour after it was enabled. Less frequent
+    # schedules are honoured far more reliably, and for a backup that matters
+    # more than resolution.
+    #
+    # Requires a public repository for unlimited Actions minutes. If this repo
+    # is made private, drop to hourly ('0 * * * *') to stay inside the 2,000
+    # minute monthly allowance.
+    - cron: '*/15 * * * *'
   workflow_dispatch: # lets you trigger a run by hand from the Actions tab
 
 concurrency:

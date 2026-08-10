@@ -216,7 +216,10 @@ if (process.env.PORT) {
 // be delayed well past the sleep threshold.
 const keepaliveUrl = process.env.KEEPALIVE_URL || process.env.RENDER_EXTERNAL_URL;
 if (keepaliveUrl) {
-  const everyMs = 10 * 60_000; // comfortably inside the usual ~15 minute idle timeout
+  // Every 5 minutes, not 10. The idle timer resets on each request, so with a
+  // 10-minute gap a single failed ping leaves a 20-minute window and the
+  // service sleeps. At 5 minutes it takes two consecutive failures to do that.
+  const everyMs = 5 * 60_000;
   setInterval(() => {
     fetch(keepaliveUrl, { signal: AbortSignal.timeout(30_000) }).catch((error) =>
       console.error('Keepalive ping failed:', error.message),
