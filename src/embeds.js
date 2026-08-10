@@ -10,18 +10,23 @@ const TREND = {
   flat: { icon: '▪️', label: 'ثبات (Stable)' },
 };
 
+/**
+ * One row per karat, stacked vertically. Discord has no way to centre text in
+ * an embed, so readability comes from each karat owning a full-width row
+ * instead of being squeezed into a three-across grid.
+ */
 function karatField(karat, value, previous) {
   let delta = '';
   if (typeof previous === 'number' && previous !== 0) {
     const diff = value - previous;
     const arrow = diff > 0 ? '🔺' : diff < 0 ? '🔻' : '▪️';
     const sign = diff > 0 ? '+' : '';
-    delta = `\n${arrow} ${sign}${formatSar(diff)} (${sign}${((diff / previous) * 100).toFixed(2)}%)`;
+    delta = `  ${arrow} ${sign}${formatSar(diff)} (${sign}${((diff / previous) * 100).toFixed(2)}%)`;
   }
   return {
     name: `عيار ${karat} (Karat)`,
-    value: `**${formatSar(value)}** SAR${delta}`,
-    inline: true,
+    value: `**${formatSar(value)} SAR**${delta}`,
+    inline: false,
   };
 }
 

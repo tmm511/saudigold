@@ -10,7 +10,7 @@ import {
 } from 'discord.js';
 import { config } from './config.js';
 import { buildComponents, buildEmbeds, REFRESH_BUTTON_ID } from './embeds.js';
-import { fetchAll } from './prices.js';
+import { fetchAll, priceSignature } from './prices.js';
 import { readState, writeState } from './state.js';
 
 const COMMAND = new SlashCommandBuilder()
@@ -42,6 +42,8 @@ async function registerCommands(appId) {
 
 // ---------------------------------------------------------------- auto poster
 
+let lastSignature = null;
+
 async function runAutoUpdate() {
   const channel = await client.channels.fetch(config.autoChannelId).catch(() => null);
   if (!channel?.isTextBased?.()) {
@@ -49,7 +51,15 @@ async function runAutoUpdate() {
     return;
   }
 
-  const payload = await buildPayload();
+  const results = await fetchAll();
+  const signature = priceSignature(results);
+
+  // Poll often, write rarely: only touch Discord when a number actually moved.
+  if (config.autoMode === 'edit' && signature === lastSignature) return;
+  lastSignature = signature;
+
+  const payload = { embeds: buildEmbeds(results), components: buildComponents() };
+  console.log(`Prices changed — updating channel ${config.autoChannelId}`);
 
   if (config.autoMode === 'edit') {
     const { autoMessageId, autoChannelId } = await readState();
@@ -78,9 +88,10 @@ function startAutoUpdates() {
     runAutoUpdate().catch((error) => console.error('Auto update failed:', error.message || error));
 
   tick();
-  setInterval(tick, config.refreshMinutes * 60_000);
+  setInterval(tick, config.refreshSeconds * 1000);
   console.log(
-    `Auto updates every ${config.refreshMinutes}m in channel ${config.autoChannelId} (mode: ${config.autoMode}).`,
+    `Checking prices every ${config.refreshSeconds}s in channel ${config.autoChannelId} ` +
+      `(mode: ${config.autoMode}; the message is edited only when a price changes).`,
   );
 }
 

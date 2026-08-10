@@ -14,7 +14,14 @@ export const config = {
   token: process.env.DISCORD_TOKEN?.trim(),
   guildId: process.env.GUILD_ID?.trim() || null,
   autoChannelId: process.env.AUTO_CHANNEL_ID?.trim() || null,
-  refreshMinutes: int(process.env.REFRESH_MINUTES, 30, 1),
+  // REFRESH_SECONDS wins; REFRESH_MINUTES is kept for older .env files.
+  // Floored at 30s — both sites only recompute about once a minute, so polling
+  // harder just hammers someone else's server for nothing.
+  refreshSeconds: int(
+    process.env.REFRESH_SECONDS,
+    int(process.env.REFRESH_MINUTES, 1, 1) * 60,
+    30,
+  ),
   // "edit" keeps one live message up to date; "post" sends a new message each cycle.
   autoMode: (process.env.AUTO_MODE || 'edit').trim().toLowerCase() === 'post' ? 'post' : 'edit',
   prefix: process.env.PREFIX || '!',
