@@ -1,3 +1,9 @@
 node_modules/
-.env
 data/
+
+# Never commit real credentials. The pattern is deliberately broad and the
+# example file is re-included explicitly, so a stray .env.local or .env.backup
+# cannot slip through.
+.env
+.env.*
+!.env.example

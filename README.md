@@ -65,7 +65,7 @@ interval under ~5 minutes is inconsiderate and gains you very little.
 ## Running it 24/7 for free (GitHub Actions)
 
 You do not need a VPS or a PC left on. [`.github/workflows/gold-prices.yml`](.github/workflows/gold-prices.yml)
-runs [`scripts/post.js`](scripts/post.js) every 30 minutes on GitHub's runners.
+runs [`scripts/post.js`](scripts/post.js) every hour on GitHub's runners.
 
 That script talks to Discord's REST API directly instead of opening a gateway
 connection, so it starts, posts, and exits in a few seconds. It finds the bot's
@@ -85,12 +85,28 @@ Setup, once:
 
 Caveats worth knowing:
 
-- Scheduled runs are queued, not precise. A `*/30` cron typically fires a few
+- Scheduled runs are queued, not precise. An hourly cron typically fires a few
   minutes late when GitHub is busy.
 - GitHub disables scheduled workflows in repos with **60 days of no activity**.
   It emails you first; clicking *Run workflow* resets the clock.
-- Public repos get unlimited Actions minutes; private repos get a monthly
-  allowance that this job uses a tiny fraction of.
+- **Minutes budget.** Public repos get unlimited Actions minutes. Private repos
+  get 2,000/month, and GitHub rounds every run up to a whole minute — so the
+  schedule is the budget. Hourly is ~720 minutes/month, comfortable. Every 30
+  minutes would be ~1,440 and risks exhausting the allowance mid-month, which
+  stops updates silently until it resets. Raise the frequency only on a public
+  repo.
+
+### Keeping the token safe
+
+The token never enters the repository. It lives in GitHub Actions secrets,
+encrypted at rest and masked in logs, and reaches the job only as an
+environment variable. Locally it lives in `.env`, which `.gitignore` excludes
+along with any `.env.*` variant.
+
+If a token is ever pasted somewhere it shouldn't be — a chat, a screenshot, a
+log — treat it as public and rotate it: Developer Portal → Bot → **Reset Token**,
+then update the `DISCORD_TOKEN` secret and your local `.env`. Rotation is free
+and instant, and it is the only thing that actually revokes a leaked token.
 
 The trade-off: this mode posts and edits on a schedule, but there is no live
 process, so `/gold` and the refresh button do not work. For those you need the
