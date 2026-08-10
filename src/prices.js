@@ -1,10 +1,21 @@
 import * as saudigoldprice from './sources/saudigoldprice.js';
 import * as ounce from './sources/ounce.js';
 
+/**
+ * ttlMs is the minimum gap between real requests to a source, so the poll loop
+ * can run fast without hitting both sites at the same rate.
+ *
+ * ounce.com.sa is a small JSON endpoint the site's own page polls, so checking
+ * it often costs it almost nothing. saudigoldprice.com means downloading and
+ * parsing a full HTML page, so it is checked less aggressively. Both sites
+ * publish on a 5-minute cadence, so neither TTL can cause a missed change.
+ */
 export const SOURCES = [
-  { meta: saudigoldprice.SOURCE, fetchPrices: saudigoldprice.fetchPrices },
-  { meta: ounce.SOURCE, fetchPrices: ounce.fetchPrices },
+  { meta: saudigoldprice.SOURCE, fetchPrices: saudigoldprice.fetchPrices, ttlMs: 60_000 },
+  { meta: ounce.SOURCE, fetchPrices: ounce.fetchPrices, ttlMs: 15_000 },
 ];
+
+const cache = new Map();
 
 /**
  * A stable fingerprint of the prices themselves, ignoring timestamps.
@@ -27,14 +38,21 @@ export function priceSignature(results) {
  * Fetch every source concurrently. A failing source never takes the others
  * down — it comes back as { ok: false, error } so the embed can say so.
  */
-export async function fetchAll() {
+export async function fetchAll({ force = false } = {}) {
   return Promise.all(
-    SOURCES.map(async ({ meta, fetchPrices }) => {
+    SOURCES.map(async ({ meta, fetchPrices, ttlMs }) => {
+      const cached = cache.get(meta.id);
+      if (!force && cached && Date.now() - cached.at < ttlMs) return cached.result;
+
+      let result;
       try {
-        return { ok: true, meta, data: await fetchPrices() };
+        result = { ok: true, meta, data: await fetchPrices() };
       } catch (error) {
-        return { ok: false, meta, error: error.message || String(error) };
+        result = { ok: false, meta, error: error.message || String(error) };
       }
+
+      cache.set(meta.id, { at: Date.now(), result });
+      return result;
     }),
   );
 }

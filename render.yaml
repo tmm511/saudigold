@@ -25,8 +25,10 @@ services:
         sync: false
       - key: AUTO_CHANNEL_ID
         sync: false
+      # Poll loop interval. Per-source request gaps live in prices.js, so this
+      # being short does not mean both sites are hit every tick.
       - key: REFRESH_SECONDS
-        value: '60'
+        value: '15'
       - key: AUTO_MODE
         value: edit
       - key: FOOTER_TEXT

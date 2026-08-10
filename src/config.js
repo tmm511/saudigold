@@ -14,13 +14,14 @@ export const config = {
   token: process.env.DISCORD_TOKEN?.trim(),
   guildId: process.env.GUILD_ID?.trim() || null,
   autoChannelId: process.env.AUTO_CHANNEL_ID?.trim() || null,
-  // REFRESH_SECONDS wins; REFRESH_MINUTES is kept for older .env files.
-  // Floored at 30s — both sites only recompute about once a minute, so polling
-  // harder just hammers someone else's server for nothing.
+  // How often the poll loop runs. Each source additionally enforces its own
+  // minimum request gap (see SOURCES in prices.js), so a fast loop does not
+  // mean every site is hit every tick. REFRESH_MINUTES is kept for older
+  // .env files.
   refreshSeconds: int(
     process.env.REFRESH_SECONDS,
-    int(process.env.REFRESH_MINUTES, 1, 1) * 60,
-    30,
+    int(process.env.REFRESH_MINUTES, 0, 1) * 60 || 15,
+    5,
   ),
   // "edit" keeps one live message up to date; "post" sends a new message each cycle.
   autoMode: (process.env.AUTO_MODE || 'edit').trim().toLowerCase() === 'post' ? 'post' : 'edit',
