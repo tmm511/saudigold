@@ -67,6 +67,26 @@ async function registerCommands(appId) {
 
 let lastSignature = null;
 
+/**
+ * Locate the message this bot keeps up to date.
+ *
+ * Checks the saved ID first, then falls back to scanning recent channel
+ * history for the bot's own last embed message. The fallback matters because
+ * the scheduled GitHub Actions poster maintains the same message without ever
+ * writing state here — on a fresh host, trusting state alone would post a
+ * duplicate alongside the message that already exists.
+ */
+async function findLiveMessage(channel) {
+  const { autoMessageId, autoChannelId } = await readState();
+  if (autoMessageId && autoChannelId === config.autoChannelId) {
+    const saved = await channel.messages.fetch(autoMessageId).catch(() => null);
+    if (saved) return saved;
+  }
+
+  const recent = await channel.messages.fetch({ limit: 50 }).catch(() => null);
+  return recent?.find((m) => m.author.id === client.user.id && m.embeds.length > 0) ?? null;
+}
+
 async function runAutoUpdate() {
   const channel = await client.channels.fetch(config.autoChannelId).catch(() => null);
   if (!channel?.isTextBased?.()) {
@@ -85,13 +105,13 @@ async function runAutoUpdate() {
   console.log(`Prices changed — updating channel ${config.autoChannelId}`);
 
   if (config.autoMode === 'edit') {
-    const { autoMessageId, autoChannelId } = await readState();
-    if (autoMessageId && autoChannelId === config.autoChannelId) {
-      const existing = await channel.messages.fetch(autoMessageId).catch(() => null);
-      if (existing) {
-        await existing.edit(payload);
-        return;
-      }
+    const existing = await findLiveMessage(channel);
+    if (existing) {
+      await existing.edit(payload);
+      // Re-record it: the message may have been found by scanning rather than
+      // read from state, e.g. on a fresh host with no data directory.
+      await writeState({ autoMessageId: existing.id, autoChannelId: config.autoChannelId });
+      return;
     }
   }
 
