@@ -1,0 +1,41 @@
+# Render Blueprint — deploys the gateway bot (presence, /gold, 60s updates).
+#
+# Deployed as a WEB service, not a worker: Render's free plan covers web
+# services only. The bot binds an HTTP health endpoint when PORT is set, which
+# Render provides automatically, so it satisfies the web-service contract
+# without changing how the bot works.
+#
+# Free web services sleep after ~15 minutes without inbound traffic, and a
+# Discord bot receives none — so something must ping the health URL. The
+# GitHub Actions workflow does this when the RENDER_URL repository variable is
+# set.
+services:
+  - type: web
+    name: saudigold-bot
+    runtime: node
+    plan: free
+    region: frankfurt # closest free region to Saudi Arabia; oregon/singapore also available
+    branch: main
+    buildCommand: npm ci --omit=dev
+    startCommand: node src/index.js
+    healthCheckPath: /
+    envVars:
+      # sync: false means "prompt me in the dashboard" — never commit these.
+      - key: DISCORD_TOKEN
+        sync: false
+      - key: AUTO_CHANNEL_ID
+        sync: false
+      - key: REFRESH_SECONDS
+        value: '60'
+      - key: AUTO_MODE
+        value: edit
+      - key: FOOTER_TEXT
+        value: '@._q // tm'
+      - key: STATUS_TEXT
+        value: '/baba tm'
+      - key: STATUS_TYPE
+        value: streaming
+      - key: STATUS_URL
+        value: https://twitch.tv/tmm511
+      - key: STATUS_ONLINE
+        value: online

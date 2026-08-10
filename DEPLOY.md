@@ -46,7 +46,47 @@ only when the activity carries a twitch.tv or youtube.com link; with anything
 else the status silently degrades to "Playing". The linked channel does not
 have to be live.
 
-## Option A — a free Discord bot host
+## Option A — Render (free plan)
+
+A `render.yaml` blueprint is included, so Render can configure the service
+itself.
+
+1. Sign in at [render.com](https://render.com) with GitHub.
+2. **New → Blueprint**, pick `tmm511/saudigold`, and Render reads `render.yaml`.
+3. It will prompt for the two values marked `sync: false` —
+   `DISCORD_TOKEN` and `AUTO_CHANNEL_ID`. Everything else is preset.
+4. Deploy, then open the service log. `Presence: streaming "/baba tm"` means
+   it is live.
+
+### The catch, and how it is handled
+
+Render's free plan covers **web services only** — background workers are paid.
+A Discord bot is naturally a worker, so it is deployed as a web service and
+binds the health endpoint that the bot exposes when `PORT` is set. Render sets
+`PORT` automatically, so this needs no code change.
+
+Free web services **sleep after roughly 15 minutes without inbound HTTP
+traffic**, and a Discord bot receives none, so it would sleep and the status
+would disappear. The scheduled GitHub Actions job doubles as the keepalive:
+set a repository **variable** (not a secret) named `RENDER_URL` to the service
+URL under *Settings → Secrets and variables → Actions → Variables*, and every
+run pings it. The step is skipped when the variable is unset, and a failed ping
+never fails the price update.
+
+Two things to be honest about:
+
+- Keeping a free service awake with external pings works against the spin-down
+  the free plan is built around. It is widely done and not currently blocked,
+  but it is Render's call to change, not a guarantee.
+- The free plan allows 750 instance hours per month, which covers one service
+  running continuously (744 hours in a 31-day month). Running a second free
+  service alongside it would exceed that.
+
+This is exactly why the hybrid setup matters: if Render sleeps, throttles, or
+drops its free plan, GitHub Actions keeps the prices updating. Only the status
+would be lost.
+
+## Option B — a free Discord bot host
 
 Hosts aimed specifically at Discord bots (bot-hosting.net and similar) are
 usually the least friction: no credit card, and they expect a long-running
@@ -62,7 +102,7 @@ process rather than a web service.
 Free tiers on these hosts change often, and some require a periodic click to
 keep an instance alive. Check the current terms when you sign up.
 
-## Option B — any host that accepts a Dockerfile
+## Option C — any host that accepts a Dockerfile
 
 A `Dockerfile` is included, so anything Docker-based works without changes.
 Point the platform at the repo, let it build, and set the environment
@@ -70,7 +110,7 @@ variables. If the platform insists on a bound HTTP port, set `PORT` and the bot
 exposes a health endpoint at `/` reporting `ready`/`connecting` and uptime;
 without `PORT` no server starts.
 
-## Option C — a free VM
+## Option D — a free VM
 
 On a persistent VM, keep it running with a process manager:
 

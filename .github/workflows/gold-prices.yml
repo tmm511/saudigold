@@ -36,3 +36,15 @@ jobs:
           DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
           AUTO_CHANNEL_ID: ${{ secrets.AUTO_CHANNEL_ID }}
           AUTO_MODE: edit
+
+      # Render's free web services sleep after ~15 minutes without inbound
+      # traffic, and a Discord bot never receives any. This job already runs on
+      # a schedule, so it doubles as the keepalive ping.
+      #
+      # Set the RENDER_URL repository VARIABLE (Settings -> Secrets and
+      # variables -> Actions -> Variables) to the service URL. Skipped when
+      # unset, and a failed ping never fails the price update.
+      - name: Keep the Render service awake
+        if: vars.RENDER_URL != ''
+        continue-on-error: true
+        run: curl -fsS --max-time 30 "${{ vars.RENDER_URL }}" || echo 'keepalive ping failed'
