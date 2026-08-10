@@ -206,4 +206,23 @@ if (process.env.PORT) {
   }).listen(process.env.PORT, () => console.log(`Health endpoint on :${process.env.PORT}`));
 }
 
+// Free hosts sleep a web service that receives no inbound traffic, and a
+// Discord bot receives none — its gateway connection is outbound. So the
+// service generates its own traffic by requesting its own public URL.
+//
+// Render publishes that URL as RENDER_EXTERNAL_URL, so this needs no
+// configuration there; KEEPALIVE_URL covers hosts that do not. Deliberately
+// not dependent on the GitHub Actions schedule, which is best-effort and can
+// be delayed well past the sleep threshold.
+const keepaliveUrl = process.env.KEEPALIVE_URL || process.env.RENDER_EXTERNAL_URL;
+if (keepaliveUrl) {
+  const everyMs = 10 * 60_000; // comfortably inside the usual ~15 minute idle timeout
+  setInterval(() => {
+    fetch(keepaliveUrl, { signal: AbortSignal.timeout(30_000) }).catch((error) =>
+      console.error('Keepalive ping failed:', error.message),
+    );
+  }, everyMs).unref();
+  console.log(`Keepalive: pinging ${keepaliveUrl} every 10 minutes`);
+}
+
 client.login(config.token);
