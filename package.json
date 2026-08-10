@@ -1,0 +1,21 @@
+{
+  "name": "saudigold-bot",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Discord bot that reports live Saudi gold prices from saudigoldprice.com and ounce.com.sa",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "post": "node scripts/post.js",
+    "test:scrape": "node scripts/test-scrape.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "cheerio": "^1.0.0",
+    "discord.js": "^14.16.3",
+    "dotenv": "^16.4.5"
+  }
+}

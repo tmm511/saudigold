@@ -1,0 +1,32 @@
+name: Gold prices
+
+on:
+  schedule:
+    # Every 30 minutes. GitHub queues scheduled runs, so expect a few minutes
+    # of drift — this is not a to-the-second cron.
+    - cron: '*/30 * * * *'
+  workflow_dispatch: # lets you trigger a run by hand from the Actions tab
+
+concurrency:
+  group: gold-prices
+  cancel-in-progress: false
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run post
+        env:
+          DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
+          AUTO_CHANNEL_ID: ${{ secrets.AUTO_CHANNEL_ID }}
+          AUTO_MODE: edit
