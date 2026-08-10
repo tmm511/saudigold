@@ -26,6 +26,17 @@ export const config = {
   autoMode: (process.env.AUTO_MODE || 'edit').trim().toLowerCase() === 'post' ? 'post' : 'edit',
   prefix: process.env.PREFIX || '!',
   enablePrefixCommands: bool(process.env.ENABLE_PREFIX_COMMANDS, false),
+
+  // Presence shown under the bot's name in the member list.
+  // Only applies while the gateway bot is running — presence lives on the
+  // gateway connection, so the REST-only scheduled poster cannot set it.
+  statusText: process.env.STATUS_TEXT ?? '/baba tm',
+  statusType: (process.env.STATUS_TYPE || 'streaming').trim().toLowerCase(),
+  // Discord only renders the purple "Streaming" label when the activity carries
+  // a twitch.tv or youtube.com URL. With anything else it silently degrades to
+  // "Playing", so the URL is not optional for this look.
+  statusUrl: process.env.STATUS_URL?.trim() || 'https://twitch.tv/tmm511',
+  statusOnline: (process.env.STATUS_ONLINE || 'online').trim().toLowerCase(),
 };
 
 if (!config.token) {

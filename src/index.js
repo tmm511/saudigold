@@ -1,4 +1,5 @@
 import {
+  ActivityType,
   Client,
   Events,
   GatewayIntentBits,
@@ -24,7 +25,29 @@ if (config.enablePrefixCommands) {
   intents.push(GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent);
 }
 
-const client = new Client({ intents, partials: [Partials.Channel] });
+const ACTIVITY_TYPES = {
+  streaming: ActivityType.Streaming,
+  playing: ActivityType.Playing,
+  listening: ActivityType.Listening,
+  watching: ActivityType.Watching,
+  competing: ActivityType.Competing,
+};
+
+function buildPresence() {
+  if (!config.statusText) return undefined;
+
+  const type = ACTIVITY_TYPES[config.statusType] ?? ActivityType.Streaming;
+  const activity = { name: config.statusText, type };
+  // url only means anything for Streaming, and Discord requires a twitch.tv or
+  // youtube.com link before it will render the purple "Streaming" label.
+  if (type === ActivityType.Streaming) activity.url = config.statusUrl;
+
+  return { activities: [activity], status: config.statusOnline };
+}
+
+// Passing presence here (rather than only calling setPresence after ready)
+// means it is sent with every gateway identify, so it survives reconnects.
+const client = new Client({ intents, partials: [Partials.Channel], presence: buildPresence() });
 
 async function buildPayload() {
   const results = await fetchAll();
@@ -99,6 +122,14 @@ function startAutoUpdates() {
 
 client.once(Events.ClientReady, async (c) => {
   console.log(`Logged in as ${c.user.tag}`);
+
+  const presence = buildPresence();
+  if (presence) {
+    // Re-assert after ready as well: the identify payload can be dropped if the
+    // gateway resumes an older session.
+    c.user.setPresence(presence);
+    console.log(`Presence: ${config.statusType} "${config.statusText}"`);
+  }
   try {
     await registerCommands(c.application.id);
   } catch (error) {
@@ -142,6 +173,23 @@ if (config.enablePrefixCommands) {
       console.error('Prefix command failed:', error);
     }
   });
+}
+
+// Many free hosts only keep a service alive if it binds an HTTP port, and some
+// expect a health endpoint to poll. A Discord bot needs neither, so this starts
+// only when PORT is set — locally it stays out of the way.
+if (process.env.PORT) {
+  const { createServer } = await import('node:http');
+  createServer((_req, res) => {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(
+      JSON.stringify({
+        status: client.isReady() ? 'ready' : 'connecting',
+        bot: client.user?.tag ?? null,
+        uptimeSeconds: Math.round(process.uptime()),
+      }),
+    );
+  }).listen(process.env.PORT, () => console.log(`Health endpoint on :${process.env.PORT}`));
 }
 
 client.login(config.token);
