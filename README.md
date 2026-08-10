@@ -65,7 +65,7 @@ interval under ~5 minutes is inconsiderate and gains you very little.
 ## Running it 24/7 for free (GitHub Actions)
 
 You do not need a VPS or a PC left on. [`.github/workflows/gold-prices.yml`](.github/workflows/gold-prices.yml)
-runs [`scripts/post.js`](scripts/post.js) every hour on GitHub's runners.
+runs [`scripts/post.js`](scripts/post.js) every 5 minutes on GitHub's runners.
 
 That script talks to Discord's REST API directly instead of opening a gateway
 connection, so it starts, posts, and exits in a few seconds. It finds the bot's
@@ -85,16 +85,16 @@ Setup, once:
 
 Caveats worth knowing:
 
-- Scheduled runs are queued, not precise. An hourly cron typically fires a few
-  minutes late when GitHub is busy.
+- Scheduled runs are queued, not precise. A 5-minute cron often fires late when
+  GitHub is busy, and 5 minutes is the shortest interval Actions permits.
 - GitHub disables scheduled workflows in repos with **60 days of no activity**.
   It emails you first; clicking *Run workflow* resets the clock.
-- **Minutes budget.** Public repos get unlimited Actions minutes. Private repos
-  get 2,000/month, and GitHub rounds every run up to a whole minute — so the
-  schedule is the budget. Hourly is ~720 minutes/month, comfortable. Every 30
-  minutes would be ~1,440 and risks exhausting the allowance mid-month, which
-  stops updates silently until it resets. Raise the frequency only on a public
-  repo.
+- **This schedule requires a public repo.** Public repos have unlimited Actions
+  minutes. Private repos get 2,000/month, and GitHub rounds every run up to a
+  whole minute — so the schedule is the budget. Every 5 minutes is roughly
+  8,640 minutes/month, which a private repo exhausts about a week in, stopping
+  updates silently until the allowance resets. If this repo is ever made
+  private, drop the cron back to hourly (`0 * * * *`, about 720 minutes).
 
 ### Keeping the token safe
 
