@@ -14,6 +14,17 @@ import { buildComponents, buildEmbeds } from './embeds.js';
 import { fetchAll, priceSignature } from './prices.js';
 import { readState, writeState } from './state.js';
 
+// A host that reports only "failed to launch" is useless for diagnosis, so
+// make the process say why before it dies.
+process.on('unhandledRejection', (reason) => {
+  console.error('FATAL unhandled rejection:', reason);
+  process.exit(1);
+});
+process.on('uncaughtException', (error) => {
+  console.error('FATAL uncaught exception:', error);
+  process.exit(1);
+});
+
 const COMMAND = new SlashCommandBuilder()
   .setName('gold')
   // No name localization: Discord's locale list has no Arabic entry.
@@ -225,7 +236,13 @@ if (keepaliveUrl) {
       console.error('Keepalive ping failed:', error.message),
     );
   }, everyMs).unref();
-  console.log(`Keepalive: pinging ${keepaliveUrl} every 10 minutes`);
+  console.log(`Keepalive: pinging ${keepaliveUrl} every ${everyMs / 60_000} minutes`);
 }
 
-client.login(config.token);
+client.login(config.token).catch((error) => {
+  // The common causes are a stale token after a reset and a privileged intent
+  // that is enabled in code but not in the Developer Portal. Both surface here
+  // as a login rejection, so name them rather than printing a bare stack.
+  console.error('FATAL: Discord login failed —', error.message);
+  process.exit(1);
+});
