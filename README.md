@@ -78,8 +78,11 @@ Discord renders `@here` as plain text and notifies nobody. A source failing or
 recovering does not count as a price change, and neither does the first update
 after a fresh deploy, which has no earlier prices to compare against.
 
-Both sites update roughly every minute, but they're scraped sites — a refresh
-interval under ~5 minutes is inconsiderate and gains you very little.
+`REFRESH_SECONDS` is how often the loop runs (minimum 5). Each source also
+enforces its own minimum gap between real requests, set in `src/prices.js`:
+ounce.com.sa is a small JSON endpoint and is checked every 5 seconds, while
+saudigoldprice.com is a full HTML page and is checked every 15 seconds so the
+host's IP does not get blocked for hammering it.
 
 ## Running it 24/7 for free (GitHub Actions)
 

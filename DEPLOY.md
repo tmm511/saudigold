@@ -5,7 +5,7 @@ This project runs in two halves, and they are designed to coexist:
 | | Runs on | Provides | If it stops |
 |---|---|---|---|
 | `scripts/post.js` | GitHub Actions, every 5 min | Price updates | — |
-| `src/index.js` | An always-on host | Streaming status, `/gold`, refresh button, 60-second updates | Prices keep updating via Actions |
+| `src/index.js` | An always-on host | Streaming status, `/gold`, refresh button, 5-second updates | Prices keep updating via Actions |
 
 Actions is the safety net. Deploy the gateway bot on top of it, and if the free
 host sleeps, throttles or shuts down, the channel keeps updating regardless.
@@ -33,7 +33,7 @@ image — hosts expose an environment variables panel for exactly this reason.
 |---|---|---|
 | `DISCORD_TOKEN` | your bot token | yes |
 | `AUTO_CHANNEL_ID` | `1536242189967958078` | yes |
-| `REFRESH_SECONDS` | `60` | no (default 60) |
+| `REFRESH_SECONDS` | `5` | no (default 15, minimum 5) |
 | `AUTO_MODE` | `edit` | no |
 | `PING_ON_CHANGE` | `true` | no (default true) |
 | `PING_TEXT` | `@here تغيّرت أسعار الذهب 🔔` | no |

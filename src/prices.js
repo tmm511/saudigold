@@ -6,13 +6,14 @@ import * as ounce from './sources/ounce.js';
  * can run fast without hitting both sites at the same rate.
  *
  * ounce.com.sa is a small JSON endpoint the site's own page polls, so checking
- * it often costs it almost nothing. saudigoldprice.com means downloading and
- * parsing a full HTML page, so it is checked less aggressively. Both sites
- * publish on a 5-minute cadence, so neither TTL can cause a missed change.
+ * it every 5 seconds costs it almost nothing. saudigoldprice.com means
+ * downloading and parsing a full HTML page, so it is held to once every 15
+ * seconds: fast enough to catch a change within seconds of it appearing,
+ * slow enough not to look like abuse and get the host's IP blocked.
  */
 export const SOURCES = [
-  { meta: saudigoldprice.SOURCE, fetchPrices: saudigoldprice.fetchPrices, ttlMs: 60_000 },
-  { meta: ounce.SOURCE, fetchPrices: ounce.fetchPrices, ttlMs: 15_000 },
+  { meta: saudigoldprice.SOURCE, fetchPrices: saudigoldprice.fetchPrices, ttlMs: 15_000 },
+  { meta: ounce.SOURCE, fetchPrices: ounce.fetchPrices, ttlMs: 5_000 },
 ];
 
 const cache = new Map();

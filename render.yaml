@@ -28,7 +28,7 @@ services:
       # Poll loop interval. Per-source request gaps live in prices.js, so this
       # being short does not mean both sites are hit every tick.
       - key: REFRESH_SECONDS
-        value: '15'
+        value: '5'
       - key: AUTO_MODE
         value: edit
       # @here on every price move, deleted again after a few seconds. The bot
