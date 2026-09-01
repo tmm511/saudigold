@@ -62,15 +62,15 @@ AUTO_MODE=edit
 ### Pinging on a price change
 
 Whenever a price moves, the bot sends `@here` into the same channel and
-deletes it again a few seconds later. Members get the notification; the
-channel stays clean. This is on by default and only runs in the live bot
+deletes it again immediately (or after `PING_DELETE_SECONDS` seconds, if set).
+Members get the notification; the channel stays clean. This is on by default and only runs in the live bot
 (`npm start`), not in the scheduled GitHub Actions poster, which has no memory
 of the previous prices.
 
 ```env
 PING_ON_CHANGE=true
 PING_TEXT=@here
-PING_DELETE_SECONDS=5
+PING_DELETE_SECONDS=0
 ```
 
 The bot needs the **Mention Everyone** permission in that channel. Without it

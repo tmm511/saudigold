@@ -37,7 +37,7 @@ image — hosts expose an environment variables panel for exactly this reason.
 | `AUTO_MODE` | `edit` | no |
 | `PING_ON_CHANGE` | `true` | no (default true) |
 | `PING_TEXT` | `@here` | no |
-| `PING_DELETE_SECONDS` | `5` | no (default 5) |
+| `PING_DELETE_SECONDS` | `0` | no (default 0 = delete immediately) |
 | `STATUS_TEXT` | `/baba tm` | no |
 | `STATUS_TYPE` | `streaming` | no |
 | `STATUS_URL` | a twitch.tv or youtube.com URL | for the purple label |

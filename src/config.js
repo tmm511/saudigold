@@ -34,7 +34,8 @@ export const config = {
   // permission, or Discord renders "@here" as plain text and notifies nobody.
   pingOnChange: bool(process.env.PING_ON_CHANGE, true),
   pingText: process.env.PING_TEXT ?? '@here',
-  pingDeleteSeconds: int(process.env.PING_DELETE_SECONDS, 5, 1),
+  // 0 deletes the ping the instant it is sent; the notification still fires.
+  pingDeleteSeconds: int(process.env.PING_DELETE_SECONDS, 0, 0),
 
   // Embed footer. Kept free of Arabic on purpose: Discord reorders a line that
   // mixes RTL and LTR runs, which scrambled the timestamp that follows it.

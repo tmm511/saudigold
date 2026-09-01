@@ -162,10 +162,18 @@ async function announceChange(channel) {
     // payload allows it, and the bot must also hold "Mention Everyone".
     allowedMentions: { parse: ['everyone'] },
   });
-  console.log(`Pinged channel ${config.autoChannelId}; deleting in ${config.pingDeleteSeconds}s`);
-  setTimeout(() => {
+  // The notification is already on its way once send() resolves, so the
+  // message can go straight away. Deleting immediately (the default) leaves
+  // members with the ping in their notifications and nothing in the channel.
+  const remove = () =>
     ping.delete().catch((error) => console.error('Could not delete ping:', error.message || error));
-  }, config.pingDeleteSeconds * 1000);
+  if (config.pingDeleteSeconds === 0) {
+    console.log(`Pinged channel ${config.autoChannelId}; deleting immediately`);
+    await remove();
+  } else {
+    console.log(`Pinged channel ${config.autoChannelId}; deleting in ${config.pingDeleteSeconds}s`);
+    setTimeout(remove, config.pingDeleteSeconds * 1000);
+  }
 }
 
 function startAutoUpdates() {
