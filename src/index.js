@@ -156,20 +156,28 @@ async function publish(channel, payload) {
  * so the message itself only needs to exist long enough to deliver it.
  */
 async function announceChange(channel) {
-  const ping = await channel.send({
-    content: config.pingText,
-    // Opt in explicitly: Discord will not notify on @here/@everyone unless the
-    // payload allows it, and the bot must also hold "Mention Everyone".
-    allowedMentions: { parse: ['everyone'] },
+  // Raw REST calls rather than channel.send()/message.delete(): the ping
+  // exists only to be deleted, so there is no point building a Message object,
+  // resolving caches or emitting events for it. The floor is still two round
+  // trips — Discord has to hand back the message ID before it can be deleted —
+  // so the elapsed time is logged to make that floor visible.
+  const started = Date.now();
+  const sent = await client.rest.post(Routes.channelMessages(channel.id), {
+    body: {
+      content: config.pingText,
+      // Opt in explicitly: Discord will not notify on @here/@everyone unless
+      // the payload allows it, and the bot must also hold "Mention Everyone".
+      allowed_mentions: { parse: ['everyone'] },
+    },
   });
-  // The notification is already on its way once send() resolves, so the
-  // message can go straight away. Deleting immediately (the default) leaves
-  // members with the ping in their notifications and nothing in the channel.
   const remove = () =>
-    ping.delete().catch((error) => console.error('Could not delete ping:', error.message || error));
+    client.rest
+      .delete(Routes.channelMessage(channel.id, sent.id))
+      .catch((error) => console.error('Could not delete ping:', error.message || error));
+
   if (config.pingDeleteSeconds === 0) {
-    console.log(`Pinged channel ${config.autoChannelId}; deleting immediately`);
     await remove();
+    console.log(`Pinged channel ${config.autoChannelId} and deleted it ${Date.now() - started}ms later`);
   } else {
     console.log(`Pinged channel ${config.autoChannelId}; deleting in ${config.pingDeleteSeconds}s`);
     setTimeout(remove, config.pingDeleteSeconds * 1000);
