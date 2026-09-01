@@ -36,7 +36,7 @@ services:
       - key: PING_ON_CHANGE
         value: 'true'
       - key: PING_TEXT
-        value: '@here تغيّرت أسعار الذهب 🔔'
+        value: '@here تغيّرت أسعار الذهب'
       - key: PING_DELETE_SECONDS
         value: '5'
       - key: FOOTER_TEXT

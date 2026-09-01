@@ -36,7 +36,7 @@ image — hosts expose an environment variables panel for exactly this reason.
 | `REFRESH_SECONDS` | `5` | no (default 15, minimum 5) |
 | `AUTO_MODE` | `edit` | no |
 | `PING_ON_CHANGE` | `true` | no (default true) |
-| `PING_TEXT` | `@here تغيّرت أسعار الذهب 🔔` | no |
+| `PING_TEXT` | `@here تغيّرت أسعار الذهب` | no |
 | `PING_DELETE_SECONDS` | `5` | no (default 5) |
 | `STATUS_TEXT` | `/baba tm` | no |
 | `STATUS_TYPE` | `streaming` | no |

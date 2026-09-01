@@ -33,7 +33,7 @@ export const config = {
   // channel filling up with pings. The bot needs the "Mention Everyone"
   // permission, or Discord renders "@here" as plain text and notifies nobody.
   pingOnChange: bool(process.env.PING_ON_CHANGE, true),
-  pingText: process.env.PING_TEXT ?? '@here تغيّرت أسعار الذهب 🔔',
+  pingText: process.env.PING_TEXT ?? '@here تغيّرت أسعار الذهب',
   pingDeleteSeconds: int(process.env.PING_DELETE_SECONDS, 5, 1),
 
   // Embed footer. Kept free of Arabic on purpose: Discord reorders a line that
