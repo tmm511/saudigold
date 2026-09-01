@@ -59,6 +59,25 @@ AUTO_MODE=edit
   file to start a fresh message.
 - `AUTO_MODE=post` — sends a new message every cycle.
 
+### Pinging on a price change
+
+Whenever a price moves, the bot sends `@here` into the same channel and
+deletes it again a few seconds later. Members get the notification; the
+channel stays clean. This is on by default and only runs in the live bot
+(`npm start`), not in the scheduled GitHub Actions poster, which has no memory
+of the previous prices.
+
+```env
+PING_ON_CHANGE=true
+PING_TEXT=@here تغيّرت أسعار الذهب 🔔
+PING_DELETE_SECONDS=5
+```
+
+The bot needs the **Mention Everyone** permission in that channel. Without it
+Discord renders `@here` as plain text and notifies nobody. A source failing or
+recovering does not count as a price change, and neither does the first update
+after a fresh deploy, which has no earlier prices to compare against.
+
 Both sites update roughly every minute, but they're scraped sites — a refresh
 interval under ~5 minutes is inconsiderate and gains you very little.
 

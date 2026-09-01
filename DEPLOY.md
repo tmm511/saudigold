@@ -35,6 +35,9 @@ image — hosts expose an environment variables panel for exactly this reason.
 | `AUTO_CHANNEL_ID` | `1536242189967958078` | yes |
 | `REFRESH_SECONDS` | `60` | no (default 60) |
 | `AUTO_MODE` | `edit` | no |
+| `PING_ON_CHANGE` | `true` | no (default true) |
+| `PING_TEXT` | `@here تغيّرت أسعار الذهب 🔔` | no |
+| `PING_DELETE_SECONDS` | `5` | no (default 5) |
 | `STATUS_TEXT` | `/baba tm` | no |
 | `STATUS_TYPE` | `streaming` | no |
 | `STATUS_URL` | a twitch.tv or youtube.com URL | for the purple label |

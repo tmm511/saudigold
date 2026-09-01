@@ -11,7 +11,7 @@ import {
 } from 'discord.js';
 import { config } from './config.js';
 import { buildComponents, buildEmbeds } from './embeds.js';
-import { fetchAll, priceSignature } from './prices.js';
+import { fetchAll, priceFingerprints, priceSignature, pricesMoved } from './prices.js';
 import { readState, writeState } from './state.js';
 
 // A host that reports only "failed to launch" is useless for diagnosis, so
@@ -78,6 +78,13 @@ async function registerCommands(appId) {
 
 let lastSignature = null;
 
+// Prices as of the last update, per source. Seeded from state on the first
+// tick so a restart keeps its baseline: the first tick after a restart edits
+// the message like any other (lastSignature is null) but must not ping unless
+// a price really moved since the previous process last looked. `undefined`
+// means "not loaded yet"; `null` means "no baseline, so no ping this tick".
+let lastPrices;
+
 /**
  * Locate the message this bot keeps up to date.
  *
@@ -112,24 +119,53 @@ async function runAutoUpdate() {
   if (config.autoMode === 'edit' && signature === lastSignature) return;
   lastSignature = signature;
 
+  if (lastPrices === undefined) lastPrices = (await readState()).lastPrices ?? null;
+  const prices = priceFingerprints(results);
+  const moved = lastPrices !== null && pricesMoved(lastPrices, prices);
+  lastPrices = prices;
+
   const payload = { embeds: buildEmbeds(results), components: buildComponents() };
   console.log(`Prices changed — updating channel ${config.autoChannelId}`);
 
+  const message = await publish(channel, payload);
+  await writeState({
+    lastPrices: prices,
+    // Re-record the message: it may have been found by scanning rather than
+    // read from state, e.g. on a fresh host with no data directory.
+    ...(config.autoMode === 'edit' ? { autoMessageId: message.id, autoChannelId: config.autoChannelId } : {}),
+  });
+
+  if (moved && config.pingOnChange) await announceChange(channel);
+}
+
+/** Edit the live message, or send a new one when there is none (or in post mode). */
+async function publish(channel, payload) {
   if (config.autoMode === 'edit') {
     const existing = await findLiveMessage(channel);
     if (existing) {
       await existing.edit(payload);
-      // Re-record it: the message may have been found by scanning rather than
-      // read from state, e.g. on a fresh host with no data directory.
-      await writeState({ autoMessageId: existing.id, autoChannelId: config.autoChannelId });
-      return;
+      return existing;
     }
   }
+  return channel.send(payload);
+}
 
-  const sent = await channel.send(payload);
-  if (config.autoMode === 'edit') {
-    await writeState({ autoMessageId: sent.id, autoChannelId: config.autoChannelId });
-  }
+/**
+ * Notify the channel that a price moved, then remove the notice. The mention
+ * is what matters — it reaches phones and unread badges the moment it is sent —
+ * so the message itself only needs to exist long enough to deliver it.
+ */
+async function announceChange(channel) {
+  const ping = await channel.send({
+    content: config.pingText,
+    // Opt in explicitly: Discord will not notify on @here/@everyone unless the
+    // payload allows it, and the bot must also hold "Mention Everyone".
+    allowedMentions: { parse: ['everyone'] },
+  });
+  console.log(`Pinged channel ${config.autoChannelId}; deleting in ${config.pingDeleteSeconds}s`);
+  setTimeout(() => {
+    ping.delete().catch((error) => console.error('Could not delete ping:', error.message || error));
+  }, config.pingDeleteSeconds * 1000);
 }
 
 function startAutoUpdates() {

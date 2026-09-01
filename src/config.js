@@ -28,6 +28,14 @@ export const config = {
   prefix: process.env.PREFIX || '!',
   enablePrefixCommands: bool(process.env.ENABLE_PREFIX_COMMANDS, false),
 
+  // When a price moves, send a short mention into the auto-update channel and
+  // delete it again shortly after, so members get the notification without the
+  // channel filling up with pings. The bot needs the "Mention Everyone"
+  // permission, or Discord renders "@here" as plain text and notifies nobody.
+  pingOnChange: bool(process.env.PING_ON_CHANGE, true),
+  pingText: process.env.PING_TEXT ?? '@here تغيّرت أسعار الذهب 🔔',
+  pingDeleteSeconds: int(process.env.PING_DELETE_SECONDS, 5, 1),
+
   // Embed footer. Kept free of Arabic on purpose: Discord reorders a line that
   // mixes RTL and LTR runs, which scrambled the timestamp that follows it.
   footerText: process.env.FOOTER_TEXT ?? '@._q // tm',

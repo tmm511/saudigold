@@ -31,6 +31,14 @@ services:
         value: '15'
       - key: AUTO_MODE
         value: edit
+      # @here on every price move, deleted again after a few seconds. The bot
+      # needs "Mention Everyone" in the channel for the ping to notify anyone.
+      - key: PING_ON_CHANGE
+        value: 'true'
+      - key: PING_TEXT
+        value: '@here تغيّرت أسعار الذهب 🔔'
+      - key: PING_DELETE_SECONDS
+        value: '5'
       - key: FOOTER_TEXT
         value: '@._q // tm'
       - key: STATUS_TEXT

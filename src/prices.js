@@ -35,6 +35,25 @@ export function priceSignature(results) {
 }
 
 /**
+ * Per-source fingerprints of the prices, keyed by source id, for sources that
+ * answered. Unlike priceSignature this leaves failures out entirely, so it can
+ * be compared across ticks to ask "did a price move?" without a source going
+ * down or coming back counting as movement.
+ */
+export function priceFingerprints(results) {
+  return Object.fromEntries(
+    results
+      .filter((r) => r.ok)
+      .map((r) => [r.meta.id, JSON.stringify([r.data.karats, r.data.ounce, r.data.trend])]),
+  );
+}
+
+/** True when a source present in both snapshots reports different prices. */
+export function pricesMoved(previous, next) {
+  return Object.keys(next).some((id) => id in previous && previous[id] !== next[id]);
+}
+
+/**
  * Fetch every source concurrently. A failing source never takes the others
  * down — it comes back as { ok: false, error } so the embed can say so.
  */
