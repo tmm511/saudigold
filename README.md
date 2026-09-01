@@ -69,7 +69,7 @@ of the previous prices.
 
 ```env
 PING_ON_CHANGE=true
-PING_TEXT=@here تغيّرت أسعار الذهب
+PING_TEXT=@here
 PING_DELETE_SECONDS=5
 ```
 
