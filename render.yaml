@@ -31,13 +31,13 @@ services:
         value: '5'
       - key: AUTO_MODE
         value: edit
-      # @here on every price move, deleted again immediately (0) or after N
-      # seconds. The bot needs "Mention Everyone" in the channel for the ping
-      # to notify anyone.
+      # A mention on every price move, deleted again immediately (0) or after
+      # N seconds. A user (<@id>) or role (<@&id>) mention just works; @here
+      # or @everyone also need the "Mention Everyone" permission.
       - key: PING_ON_CHANGE
         value: 'true'
       - key: PING_TEXT
-        value: '@here'
+        value: '<@803244647865647144>'
       - key: PING_DELETE_SECONDS
         value: '0'
       - key: FOOTER_TEXT

@@ -61,7 +61,7 @@ AUTO_MODE=edit
 
 ### Pinging on a price change
 
-Whenever a price moves, the bot sends `@here` into the same channel and
+Whenever a price moves, the bot sends a mention into the same channel and
 deletes it again immediately (or after `PING_DELETE_SECONDS` seconds, if set).
 Members get the notification; the channel stays clean. This is on by default and only runs in the live bot
 (`npm start`), not in the scheduled GitHub Actions poster, which has no memory
@@ -69,12 +69,14 @@ of the previous prices.
 
 ```env
 PING_ON_CHANGE=true
-PING_TEXT=@here
+PING_TEXT=<@803244647865647144>
 PING_DELETE_SECONDS=0
 ```
 
-The bot needs the **Mention Everyone** permission in that channel. Without it
-Discord renders `@here` as plain text and notifies nobody. A source failing or
+`PING_TEXT` can be a user mention (`<@userId>`), a role mention (`<@&roleId>`),
+or `@here` / `@everyone`. The last two also need the **Mention Everyone**
+permission in that channel, or Discord renders them as plain text and
+notifies nobody. A source failing or
 recovering does not count as a price change, and neither does the first update
 after a fresh deploy, which has no earlier prices to compare against.
 

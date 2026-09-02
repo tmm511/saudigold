@@ -165,9 +165,10 @@ async function announceChange(channel) {
   const sent = await client.rest.post(Routes.channelMessages(channel.id), {
     body: {
       content: config.pingText,
-      // Opt in explicitly: Discord will not notify on @here/@everyone unless
-      // the payload allows it, and the bot must also hold "Mention Everyone".
-      allowed_mentions: { parse: ['everyone'] },
+      // Opt in explicitly: Discord only notifies for mention types the payload
+      // allows. Users, roles and @here/@everyone are all allowed so PING_TEXT
+      // can hold any of them (@here/@everyone also need "Mention Everyone").
+      allowed_mentions: { parse: ['users', 'roles', 'everyone'] },
     },
   });
   const remove = () =>

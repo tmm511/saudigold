@@ -30,10 +30,11 @@ export const config = {
 
   // When a price moves, send a short mention into the auto-update channel and
   // delete it again shortly after, so members get the notification without the
-  // channel filling up with pings. The bot needs the "Mention Everyone"
-  // permission, or Discord renders "@here" as plain text and notifies nobody.
+  // channel filling up with pings. Any mention works here: a user (<@id>),
+  // a role (<@&id>), or @here/@everyone — the last two additionally need the
+  // "Mention Everyone" permission, or Discord shows them as plain text.
   pingOnChange: bool(process.env.PING_ON_CHANGE, true),
-  pingText: process.env.PING_TEXT ?? '@here',
+  pingText: process.env.PING_TEXT ?? '<@803244647865647144>',
   // 0 deletes the ping the instant it is sent; the notification still fires.
   pingDeleteSeconds: int(process.env.PING_DELETE_SECONDS, 0, 0),
 
