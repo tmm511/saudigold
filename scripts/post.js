@@ -42,6 +42,21 @@ async function discord(path, { method = 'GET', body } = {}) {
   }
 
   if (!res.ok) {
+    // 401 has exactly one cause worth naming: the token this job was given is
+    // not a token Discord recognises any more. Resetting the token in the
+    // Developer Portal invalidates the previous one instantly, so a reset that
+    // updated the always-on host but not this secret lands here on every run.
+    if (res.status === 401) {
+      throw new Error(
+        'Discord rejected the bot token (401 Unauthorized).\n' +
+          '  The DISCORD_TOKEN secret used by this job is stale or wrong.\n' +
+          '  Fix: Developer Portal -> Bot -> Reset Token, copy it ONCE, then paste that\n' +
+          '  same value into BOTH the repo secret (Settings -> Secrets and variables ->\n' +
+          '  Actions -> DISCORD_TOKEN) and the always-on host\'s environment. Each reset\n' +
+          '  invalidates the one before it, so resetting again for the second place\n' +
+          '  breaks the first.',
+      );
+    }
     throw new Error(`Discord ${method} ${path} -> ${res.status} ${await res.text()}`);
   }
   return res.status === 204 ? null : res.json();
