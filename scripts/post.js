@@ -86,7 +86,23 @@ if (!alwaysPost) {
   target = recent.find((m) => m.author?.id === me.id && m.embeds?.length) ?? null;
 }
 
-if (target) {
+/**
+ * The price-bearing parts of a set of embeds, ignoring the footer and the
+ * timestamp. Both sources restamp "last update" every minute whether or not a
+ * number moved, so comparing whole embeds would call every run a change.
+ */
+const priceParts = (embeds) =>
+  JSON.stringify(
+    (embeds ?? []).map((e) => [e.title, e.description, (e.fields ?? []).map((f) => [f.name, f.value])]),
+  );
+
+if (target && priceParts(target.embeds) === priceParts(payload.embeds)) {
+  // Editing anyway would move the message's timestamp and make the channel
+  // look like prices changed when they did not — and this job, unlike the
+  // always-on bot, has no way to announce a real change, so a silent no-op
+  // edit is exactly the confusing case to avoid.
+  console.log(`Prices unchanged — leaving message ${target.id} as it is.`);
+} else if (target) {
   await discord(`/channels/${channelId}/messages/${target.id}`, { method: 'PATCH', body: payload });
   console.log(`Edited existing message ${target.id} in channel ${channelId}`);
 } else {

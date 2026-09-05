@@ -35,8 +35,13 @@ export const config = {
   // "Mention Everyone" permission, or Discord shows them as plain text.
   pingOnChange: bool(process.env.PING_ON_CHANGE, true),
   pingText: process.env.PING_TEXT ?? '<@803244647865647144>',
-  // 0 deletes the ping the instant it is sent; the notification still fires.
-  pingDeleteSeconds: int(process.env.PING_DELETE_SECONDS, 0, 0),
+  // How long the ping stays before it is removed. Not 0 by default: deleting
+  // within a few hundred milliseconds routinely takes the notification with
+  // it, because clients drop the mention badge for a message that no longer
+  // exists. A couple of seconds is still too brief to clutter the channel but
+  // long enough for the mention to land. 0 is still allowed for anyone who
+  // wants the old behaviour.
+  pingDeleteSeconds: int(process.env.PING_DELETE_SECONDS, 3, 0),
 
   // Embed footer. Kept free of Arabic on purpose: Discord reorders a line that
   // mixes RTL and LTR runs, which scrambled the timestamp that follows it.

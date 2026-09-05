@@ -70,8 +70,13 @@ of the previous prices.
 ```env
 PING_ON_CHANGE=true
 PING_TEXT=<@803244647865647144>
-PING_DELETE_SECONDS=0
+PING_DELETE_SECONDS=3
 ```
+
+Do not set `PING_DELETE_SECONDS=0`. Deleting the ping within a few hundred
+milliseconds usually cancels the notification as well, because clients drop
+the mention badge for a message that no longer exists — the ping looks like it
+never fired. A couple of seconds keeps the channel clean and still notifies.
 
 `PING_TEXT` can be a user mention (`<@userId>`), a role mention (`<@&roleId>`),
 or `@here` / `@everyone`. The last two also need the **Mention Everyone**

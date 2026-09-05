@@ -38,8 +38,9 @@ services:
         value: 'true'
       - key: PING_TEXT
         value: '<@803244647865647144>'
+      # Not 0: deleting the ping instantly tends to cancel the notification.
       - key: PING_DELETE_SECONDS
-        value: '0'
+        value: '3'
       - key: FOOTER_TEXT
         value: '@._q // tm'
       - key: STATUS_TEXT
