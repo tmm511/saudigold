@@ -42,6 +42,9 @@ export const config = {
   // long enough for the mention to land. 0 is still allowed for anyone who
   // wants the old behaviour.
   pingDeleteSeconds: int(process.env.PING_DELETE_SECONDS, 3, 0),
+  // Set PING_TEST=true to fire one ping at startup, so the whole path can be
+  // checked without waiting for the market to move a number. Unset it after.
+  pingTest: bool(process.env.PING_TEST, false),
 
   // Embed footer. Kept free of Arabic on purpose: Discord reorders a line that
   // mixes RTL and LTR runs, which scrambled the timestamp that follows it.

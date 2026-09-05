@@ -135,7 +135,19 @@ async function runAutoUpdate() {
     ...(config.autoMode === 'edit' ? { autoMessageId: message.id, autoChannelId: config.autoChannelId } : {}),
   });
 
-  if (moved && config.pingOnChange) await announceChange(channel);
+  if (!config.pingOnChange) return;
+  if (!moved) {
+    // Said out loud because "the message changed but nobody was pinged" is
+    // otherwise indistinguishable from a broken ping. This happens when a
+    // source failed or came back rather than when a number actually moved.
+    console.log('No price moved (a source changed state) — not pinging.');
+    return;
+  }
+  // Its own catch: a ping that fails on permissions must not be reported as
+  // "auto update failed", which points at the wrong half of the job.
+  await announceChange(channel).catch((error) =>
+    console.error('Ping FAILED:', error.message || error),
+  );
 }
 
 /** Edit the live message, or send a new one when there is none (or in post mode). */
@@ -185,6 +197,27 @@ async function announceChange(channel) {
   }
 }
 
+/**
+ * Fire one ping immediately, on demand. Prices move a few times a day at most
+ * and not at all at the weekend, so without this there is no way to tell a
+ * working ping from a broken one except by waiting.
+ */
+async function runPingTest() {
+  if (!config.autoChannelId) {
+    console.error('PING_TEST is set but AUTO_CHANNEL_ID is not — nothing to ping.');
+    return;
+  }
+  const channel = await client.channels.fetch(config.autoChannelId).catch(() => null);
+  if (!channel?.isTextBased?.()) {
+    console.error(`PING_TEST: channel ${config.autoChannelId} is not reachable.`);
+    return;
+  }
+  console.log(`PING_TEST: sending one test ping (${config.pingText}) — unset PING_TEST afterwards.`);
+  await announceChange(channel).catch((error) =>
+    console.error('PING_TEST FAILED:', error.message || error),
+  );
+}
+
 function startAutoUpdates() {
   if (!config.autoChannelId) {
     console.log('AUTO_CHANNEL_ID not set — auto updates disabled (slash command still works).');
@@ -220,6 +253,7 @@ client.once(Events.ClientReady, async (c) => {
     console.error('Slash command registration failed:', error.message || error);
   }
   startAutoUpdates();
+  if (config.pingTest) await runPingTest();
 });
 
 client.on(Events.InteractionCreate, async (interaction) => {
