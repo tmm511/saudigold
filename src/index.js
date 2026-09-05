@@ -121,7 +121,8 @@ async function runAutoUpdate() {
 
   if (lastPrices === undefined) lastPrices = (await readState()).lastPrices ?? null;
   const prices = priceFingerprints(results);
-  const moved = lastPrices !== null && pricesMoved(lastPrices, prices);
+  const previousPrices = lastPrices;
+  const moved = previousPrices !== null && pricesMoved(previousPrices, prices);
   lastPrices = prices;
 
   const payload = { embeds: buildEmbeds(results), components: buildComponents() };
@@ -138,9 +139,13 @@ async function runAutoUpdate() {
   if (!config.pingOnChange) return;
   if (!moved) {
     // Said out loud because "the message changed but nobody was pinged" is
-    // otherwise indistinguishable from a broken ping. This happens when a
-    // source failed or came back rather than when a number actually moved.
-    console.log('No price moved (a source changed state) — not pinging.');
+    // otherwise indistinguishable from a broken ping. Name which of the two
+    // harmless reasons it was, so the log cannot be read as a fault.
+    console.log(
+      previousPrices === null
+        ? 'First update since startup — nothing to compare against yet, so not pinging.'
+        : 'Message changed but no price moved (a source failed or recovered) — not pinging.',
+    );
     return;
   }
   // Its own catch: a ping that fails on permissions must not be reported as
