@@ -38,7 +38,7 @@ image — hosts expose an environment variables panel for exactly this reason.
 | `PING_ON_CHANGE` | `true` | no (default true) |
 | `PING_TEXT` | `<@803244647865647144>` | no (user/role mention, or @here) |
 | `PING_DELETE_SECONDS` | `3` | no (default 3; 0 usually loses the notification) |
-| `PING_TEST` | unset | set to `true` to fire one test ping at startup |
+| `SEND_TEST_PING` | unset | set to `true` to fire one test ping at startup |
 | `STATUS_TEXT` | `/baba tm` | no |
 | `STATUS_TYPE` | `streaming` | no |
 | `STATUS_URL` | a twitch.tv or youtube.com URL | for the purple label |

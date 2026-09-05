@@ -209,17 +209,17 @@ async function announceChange(channel) {
  */
 async function runPingTest() {
   if (!config.autoChannelId) {
-    console.error('PING_TEST is set but AUTO_CHANNEL_ID is not — nothing to ping.');
+    console.error('SEND_TEST_PING is set but AUTO_CHANNEL_ID is not — nothing to ping.');
     return;
   }
   const channel = await client.channels.fetch(config.autoChannelId).catch(() => null);
   if (!channel?.isTextBased?.()) {
-    console.error(`PING_TEST: channel ${config.autoChannelId} is not reachable.`);
+    console.error(`SEND_TEST_PING: channel ${config.autoChannelId} is not reachable.`);
     return;
   }
-  console.log(`PING_TEST: sending one test ping (${config.pingText}) — unset PING_TEST afterwards.`);
+  console.log(`SEND_TEST_PING: sending one test ping (${config.pingText}) — unset SEND_TEST_PING afterwards.`);
   await announceChange(channel).catch((error) =>
-    console.error('PING_TEST FAILED:', error.message || error),
+    console.error('TEST PING FAILED:', error.message || error),
   );
 }
 
