@@ -116,7 +116,14 @@ async function runAutoUpdate() {
   const signature = priceSignature(results);
 
   // Poll often, write rarely: only touch Discord when a number actually moved.
-  if (config.autoMode === 'edit' && signature === lastSignature) return;
+  // The one exception is a message that has been deleted from the channel —
+  // otherwise a clear-out leaves the channel empty until the next price move,
+  // which at a weekend is days away.
+  let reposting = false;
+  if (config.autoMode === 'edit' && signature === lastSignature) {
+    if (!(await liveMessageMissing(channel))) return;
+    reposting = true;
+  }
   lastSignature = signature;
 
   if (lastPrices === undefined) lastPrices = (await readState()).lastPrices ?? null;
@@ -126,7 +133,11 @@ async function runAutoUpdate() {
   lastPrices = prices;
 
   const payload = { embeds: buildEmbeds(results), components: buildComponents() };
-  console.log(`Prices changed — updating channel ${config.autoChannelId}`);
+  console.log(
+    reposting
+      ? `Live message is gone — posting a new one in channel ${config.autoChannelId}`
+      : `Prices changed — updating channel ${config.autoChannelId}`,
+  );
 
   const message = await publish(channel, payload);
   await writeState({
@@ -153,6 +164,20 @@ async function runAutoUpdate() {
   await announceChange(channel).catch((error) =>
     console.error('Ping FAILED:', error.message || error),
   );
+}
+
+// Checking that the message still exists costs a request, and nothing else
+// justifies talking to Discord while no price is moving, so it is throttled
+// well below the poll interval rather than run on every tick.
+const MESSAGE_CHECK_MS = 60_000;
+let lastMessageCheck = 0;
+
+/** True when the message this bot maintains has been deleted from the channel. */
+async function liveMessageMissing(channel) {
+  const now = Date.now();
+  if (now - lastMessageCheck < MESSAGE_CHECK_MS) return false;
+  lastMessageCheck = now;
+  return (await findLiveMessage(channel)) === null;
 }
 
 /** Edit the live message, or send a new one when there is none (or in post mode). */

@@ -59,6 +59,10 @@ AUTO_MODE=edit
   file to start a fresh message.
 - `AUTO_MODE=post` — sends a new message every cycle.
 
+If the message is ever deleted from the channel, the bot notices within a
+minute and posts a fresh one, rather than waiting for the next price move to
+notice the channel is empty.
+
 ### Pinging on a price change
 
 Whenever a price moves, the bot sends a mention into the same channel and
